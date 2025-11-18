@@ -1,0 +1,7 @@
+{
+  "name": "SmartLab AI",
+  "description": "A mobile-first diagnostic lab application with AI-powered features for users and administrators. Book tests, track samples, view reports with AI analysis, and get health advice from an AI assistant.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
