@@ -1,6 +1,5 @@
-
 import React, { useState, createContext, useCallback, useEffect } from 'react';
-import type { User, Test, Booking, Report, SampleStatus, Notification, PaymentStatus, IAppContext } from './types';
+import type { User, Test, Booking, Report, SampleStatus, Notification, PaymentStatus, IAppContext } from '../types';
 import LoginScreen from './screens/LoginScreen';
 import UserPanel from './screens/UserPanel';
 import AdminPanel from './screens/AdminPanel';
@@ -167,8 +166,8 @@ const fullTestDatabase: Test[] = [
 ];
 
 const mockBookings: Booking[] = [
-  { id: 'b1', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[40], fullTestDatabase[32]], totalAmount: 350 + 750, discount: (350+750) * 0.2, paidAmount: (350+750) * 0.8, dueAmount: 0, paymentMethod: 'Online', paymentStatus: 'Fully Paid', bookingDate: new Date().toISOString(), status: 'Collected' },
-  { id: 'b2', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[87]], totalAmount: 660, discount: 660 * 0.2, paidAmount: 200, dueAmount: (660 * 0.8) - 200, paymentMethod: 'Split', paymentStatus: 'Partially Paid', bookingDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'Report Ready' },
+  { id: 'b1', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[40], fullTestDatabase[32]], totalAmount: 8650, discount: 1730, paidAmount: 6920, dueAmount: 0, paymentMethod: 'Online', paymentStatus: 'Fully Paid', bookingDate: new Date().toISOString(), status: 'Collected' },
+  { id: 'b2', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[87]], totalAmount: 660, discount: 132, paidAmount: 200, dueAmount: 328, paymentMethod: 'Split', paymentStatus: 'Partially Paid', bookingDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'Report Ready' },
 ];
 
 const mockReports: Report[] = [
@@ -183,9 +182,12 @@ export const AppContext = createContext<IAppContext>({} as IAppContext);
 
 // MAIN APP COMPONENT
 const SplashScreen: React.FC = () => (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-primary to-secondary">
-        <Icon name="logo" className="w-32 h-32 text-white animate-pulse" />
-        <h1 className="text-5xl font-bold text-white mt-4 animate-fadeIn">SMARTLAB AI</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary via-purple-700 to-secondary animate-fadeIn">
+        <div className="bg-white/20 p-6 rounded-full backdrop-blur-md shadow-2xl animate-pulse">
+             <Icon name="logo" className="w-24 h-24 text-white" />
+        </div>
+        <h1 className="text-5xl font-extrabold text-white mt-6 tracking-tight">SMARTLAB AI</h1>
+        <p className="text-indigo-100 mt-2 font-medium tracking-widest text-sm uppercase">Next Gen Diagnostics</p>
     </div>
 );
 
@@ -236,8 +238,39 @@ const App: React.FC = () => {
   }, []);
   
   const updateBookingStatus = useCallback((bookingId: string, status: SampleStatus) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    
+    // Send specific "WhatsApp style" notification based on status
+    if (booking) {
+        let message = '';
+        switch(status) {
+            case 'Collected': message = "Your Sample Is Collected."; break;
+            case 'In Lab': message = "Your Sample Reach In Main lab."; break;
+            case 'Processing': message = "Your Test Is Processing."; break;
+            case 'Report Ready': message = "Your Final Report Is Ready. Download In App In Report Section."; break;
+            case 'Completed': message = "Order Completed. Thank you for choosing SmartLab."; break;
+            default: message = `Your booking status is now: ${status}`;
+        }
+        
+        // Add status specific notification
+        sendNotification({
+            userId: booking.userId,
+            title: `Update: Booking #${bookingId.slice(0,6)}`,
+            message: message
+        });
+        
+        // Add extra instruction for Report Ready
+        if (status === 'Report Ready') {
+             sendNotification({
+                userId: booking.userId,
+                title: "Download Report",
+                message: "You can download your final report from the 'Reports' section in the app."
+            });
+        }
+    }
+
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
-  }, []);
+  }, [bookings, sendNotification]);
 
   const createBooking = useCallback((newBookingData: Omit<Booking, 'id' | 'bookingDate' | 'status'>) => {
     const newBooking: Booking = {
@@ -247,7 +280,14 @@ const App: React.FC = () => {
       status: 'Pending',
     };
     setBookings(prev => [newBooking, ...prev]);
-  }, []);
+    
+    // Notify Admin (Mock broadcast to admin user logic if implemented, else just user confirm)
+    sendNotification({
+        userId: newBooking.userId,
+        title: "Booking Confirmed",
+        message: `Your booking #${newBooking.id.slice(0,6)} has been received. We will assign a phlebotomist soon.`
+    });
+  }, [sendNotification]);
 
   const updateBookingDetails = useCallback((bookingId: string, updatedDetails: Partial<Booking>) => {
     let bookingToNotify: Booking | undefined;
@@ -267,7 +307,7 @@ const App: React.FC = () => {
         sendNotification({
             userId: bookingToNotify.userId,
             title: "Payment Completed",
-            message: `Your payment of $${(bookingToNotify.totalAmount - bookingToNotify.discount).toFixed(2)} for Booking #${bookingToNotify.id.slice(0,6)} is fully completed. Thank you.`
+            message: `Your payment of ₹${(bookingToNotify.totalAmount - bookingToNotify.discount).toFixed(2)} for Booking #${bookingToNotify.id.slice(0,6)} is fully completed. Thank you.`
         });
     }
   }, [sendNotification]);
@@ -280,12 +320,8 @@ const App: React.FC = () => {
     const newReport: Report = { ...reportData, id: `r-${Date.now()}`};
     setReports(prev => [newReport, ...prev]);
     updateBookingStatus(reportData.bookingId, 'Report Ready');
-    sendNotification({
-        userId: reportData.userId,
-        title: "Report Ready!",
-        message: `Your report for Booking #${reportData.bookingId.slice(0,6)} is now available.`
-    });
-  }, [updateBookingStatus, sendNotification]);
+    // Notification handled in updateBookingStatus
+  }, [updateBookingStatus]);
 
   const updateUser = useCallback((userId: string, updatedDetails: Partial<User>) => {
       setUsers(prev => prev.map(u => u.id === userId ? {...u, ...updatedDetails} : u));
@@ -293,7 +329,6 @@ const App: React.FC = () => {
   
   const updateUserProfile = useCallback((userId: string, profileData: Partial<Pick<User, 'name' | 'phone' | 'address' | 'age'>>) => {
       setUsers(prev => prev.map(u => u.id === userId ? {...u, ...profileData} : u));
-      // Also update currentUser if it's the one being edited
       if (currentUser?.id === userId) {
           setCurrentUser(prev => prev ? { ...prev, ...profileData } : null);
       }
@@ -330,7 +365,7 @@ const App: React.FC = () => {
       return <LoginScreen onLogin={handleLogin} onSignUp={handleSignUp} users={users} />;
     }
     if (currentUser.blocked) {
-        return <div className="flex items-center justify-center h-screen text-center p-4">Your account has been blocked. Please contact support.</div>;
+        return <div className="flex items-center justify-center h-screen text-center p-4 bg-white text-red-500 font-bold">Your account has been blocked. Please contact support.</div>;
     }
     if (currentUser.role === 'admin') {
       return <AdminPanel user={currentUser} onLogout={handleLogout} />;

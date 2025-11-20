@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9,20 +8,60 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              primary: '#1E88E5',
-              'primary-dark': '#1565C0',
-              secondary: '#42A5F5',
-              accent: '#90CAF9',
-              light: '#E3F2FD',
-              dark: '#1A202C',
-              'dark-secondary': '#2D3748',
+              // Vibrant Indian Medical Palette
+              primary: '#4f46e5', // Indigo 600
+              'primary-light': '#818cf8', // Indigo 400
+              secondary: '#0891b2', // Cyan 600
+              accent: '#db2777',   // Pink 600
+              
+              // Semantic Colors (Vibrant)
+              success: '#059669', // Emerald 600
+              warning: '#d97706', // Amber 600
+              danger: '#dc2626',  // Red 600
+              info: '#2563eb',    // Blue 600
+              
+              // Backgrounds
+              light: '#f0fdfa',     // Teal 50
+              'light-card': '#ffffff',
+              dark: '#0f172a',      // Slate 900
+              'dark-secondary': '#1e293b', // Slate 800
+              
+              // Text - High Contrast
+              'text-main': '#0f172a', // Slate 900
+              'text-muted': '#475569', // Slate 600
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
             },
             borderRadius: {
               'xl': '16px',
-              '2xl': '20px',
+              '2xl': '24px',
+              '3xl': '32px',
+            },
+            boxShadow: {
+              'glow': '0 0 20px rgba(79, 70, 229, 0.4)',
+              'card': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            },
+            keyframes: {
+              fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+              slideInUp: { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+              scaleIn: { '0%': { opacity: 0, transform: 'scale(0.95)' }, '100%': { opacity: 1, transform: 'scale(1)' } },
+              pulse: { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.8 } },
+              slideDown: { '0%': { opacity: 0, transform: 'translateY(-50px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+              float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } },
+            },
+            animation: {
+              fadeIn: 'fadeIn 0.5s ease-out forwards',
+              slideInUp: 'slideInUp 0.5s ease-out forwards',
+              scaleIn: 'scaleIn 0.3s ease-out forwards',
+              pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              slideDown: 'slideDown 0.5s ease-out forwards',
+              float: 'float 3s ease-in-out infinite',
             }
           },
         },
@@ -41,7 +80,7 @@
 }
 </script>
 </head>
-  <body class="bg-light dark:bg-dark antialiased">
+  <body class="bg-light dark:bg-dark text-text-main dark:text-gray-100 antialiased selection:bg-primary selection:text-white font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

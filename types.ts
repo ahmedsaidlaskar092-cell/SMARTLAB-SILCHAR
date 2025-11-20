@@ -92,3 +92,25 @@ export interface Notification {
     read: boolean;
     userId?: 'all' | string; // 'all' for broadcast, or a specific userId
 }
+
+// APP CONTEXT INTERFACE
+export interface IAppContext {
+  user: User | null;
+  users: User[];
+  tests: Test[];
+  bookings: Booking[];
+  reports: Report[];
+  notifications: Notification[];
+  handlePasswordReset: (email: string, newPass: string) => boolean;
+  updateBookingStatus: (bookingId: string, status: SampleStatus) => void;
+  createBooking: (newBooking: Omit<Booking, 'id' | 'bookingDate' | 'status'>) => void;
+  updateBookingDetails: (bookingId: string, updatedDetails: Partial<Booking>) => void;
+  markNotificationsAsRead: (userId: string) => void;
+  sendNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  addReport: (report: Omit<Report, 'id'>) => void;
+  updateUser: (userId: string, updatedDetails: Partial<User>) => void;
+  deleteUser: (userId: string) => void;
+  addTest: (test: Omit<Test, 'id'>) => void;
+  updateTest: (testId: string, updatedDetails: Partial<Test>) => void;
+  updateUserProfile: (userId: string, profileData: Partial<Pick<User, 'name' | 'phone' | 'address' | 'age'>>) => void;
+}

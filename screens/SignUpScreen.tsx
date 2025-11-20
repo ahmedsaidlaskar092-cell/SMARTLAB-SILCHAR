@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Screen, Input, Button, Icon } from '../components';
 import type { User } from '../types';
@@ -47,22 +48,24 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSignUp, switchToLogin }) 
 
   return (
     <Screen>
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-primary to-secondary">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-10">
-            <Icon name="logo" className="w-24 h-24 mx-auto text-white" />
-            <h1 className="text-4xl font-bold text-white mt-4">Create Account</h1>
-            <p className="text-accent mt-2">Join SMARTLAB AI</p>
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-secondary via-teal-600 to-emerald-500">
+        <div className="w-full max-w-sm relative z-10">
+          <div className="text-center mb-8 animate-slideInUp">
+            <div className="bg-white/20 backdrop-blur-lg rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4 shadow-xl">
+                <Icon name="user" className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mt-2">Create Account</h1>
+            <p className="text-teal-100 mt-1">Join SMARTLAB AI</p>
           </div>
           
-          <div className="space-y-4">
+          <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-white/20 animate-slideInUp space-y-4" style={{animationDelay: '100ms'}}>
             <Input 
               type="text" 
               placeholder="Full Name" 
               value={name}
               onChange={(e) => setName(e.target.value)} 
               disabled={loading}
-              aria-label="Full Name"
+              className="bg-white/80 border-transparent focus:bg-white"
             />
              <Input 
               type="email" 
@@ -70,7 +73,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSignUp, switchToLogin }) 
               value={email}
               onChange={(e) => setEmail(e.target.value)} 
               disabled={loading}
-              aria-label="Email"
+              className="bg-white/80 border-transparent focus:bg-white"
             />
             <Input
               type="text"
@@ -78,7 +81,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSignUp, switchToLogin }) 
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               disabled={loading}
-              aria-label="Address"
+              className="bg-white/80 border-transparent focus:bg-white"
             />
             <Input 
               type="password" 
@@ -86,7 +89,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSignUp, switchToLogin }) 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
-              aria-label="Password"
+              className="bg-white/80 border-transparent focus:bg-white"
             />
             <Input 
               type="password" 
@@ -94,20 +97,18 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSignUp, switchToLogin }) 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
-              aria-label="Confirm Password"
+              className="bg-white/80 border-transparent focus:bg-white"
             />
-          </div>
 
-          {error && <p className="text-red-300 text-center mt-4">{error}</p>}
-          
-          <div className="mt-8">
-            <Button fullWidth onClick={handleSignUp} disabled={loading}>
-              {loading ? 'Creating Account...' : 'Sign Up'}
+             {error && <p className="text-red-200 bg-red-900/20 p-2 rounded text-center text-sm font-medium">{error}</p>}
+             
+             <Button fullWidth onClick={handleSignUp} disabled={loading} className="bg-white text-teal-700 hover:bg-teal-50 mt-4 font-bold shadow-lg">
+              {loading ? 'Creating...' : 'Sign Up'}
             </Button>
           </div>
           
-          <div className="text-center mt-6 text-white text-sm">
-            <a href="#" onClick={(e) => { e.preventDefault(); switchToLogin(); }} className="hover:underline">
+          <div className="text-center mt-6 text-white text-sm font-medium animate-slideInUp" style={{animationDelay: '200ms'}}>
+            <a href="#" onClick={(e) => { e.preventDefault(); switchToLogin(); }} className="hover:text-teal-200 transition-colors">
               Already have an account? Login
             </a>
           </div>
