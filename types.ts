@@ -25,7 +25,7 @@ export interface Test {
   active: boolean;
 }
 
-export type SampleStatus = 'Pending' | 'Assigned' | 'On Way' | 'Collected' | 'In Lab' | 'Processing' | 'Report Ready' | 'Completed';
+export type SampleStatus = 'Pending' | 'Assigned' | 'On Way' | 'Collected' | 'In Lab' | 'Processing' | 'Report Ready' | 'Completed' | 'Rejected';
 
 export type PaymentStatus = 'Pending' | 'Partially Paid' | 'Fully Paid';
 export type PaymentMethod = 'Cash' | 'UPI' | 'Online' | 'Split';

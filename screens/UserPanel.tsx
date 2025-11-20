@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import type { User, Test, SampleStatus, Booking, ChatMessage, Report, Notification, PaymentMethod, PaymentStatus } from '../types';
 import { Screen, BottomNav, Card, Icon, Button, Spinner, Input, Modal } from '../components';
@@ -220,17 +221,24 @@ const BookTestScreen: React.FC<{setActiveScreen: (screen: string) => void}> = ({
 
     const handleGetLocation = () => {
         setLocating(true);
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setLocation({ lat: position.coords.latitude, long: position.coords.longitude });
-                setLocating(false);
-            },
-            (error) => {
-                console.error("Error getting location", error);
-                alert("Could not get location. Please enable permissions.");
-                setLocating(false);
-            }
-        );
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setLocation({ lat: position.coords.latitude, long: position.coords.longitude });
+                    setLocating(false);
+                },
+                (error) => {
+                    console.error("Error getting location", error);
+                    // Fallback for demo/if location denied
+                    alert("Could not get location. Using default.");
+                    setLocation({lat: 28.6139, long: 77.2090}); // Default to Delhi
+                    setLocating(false);
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+            setLocating(false);
+        }
     };
 
     const toggleTest = (test: Test) => {
@@ -247,8 +255,8 @@ const BookTestScreen: React.FC<{setActiveScreen: (screen: string) => void}> = ({
     const finalAmount = totalMrp - discount;
 
     const handleSubmit = () => {
-        if (!name || !age || !phone || !address || !location) {
-            alert("Please fill all required fields and capture your location.");
+        if (!name || !age || !phone || !address) {
+            alert("Please fill all required fields.");
             return;
         }
         if (bookingType === 'with_tests' && selectedTests.length === 0) {
@@ -261,8 +269,8 @@ const BookTestScreen: React.FC<{setActiveScreen: (screen: string) => void}> = ({
         const bookingData = {
             userId: user!.id,
             name, age: parseInt(age), phone, address,
-            live_location_lat: location.lat,
-            live_location_long: location.long,
+            live_location_lat: location?.lat,
+            live_location_long: location?.long,
             symptoms,
             tests: bookingType === 'with_tests' ? selectedTests : [],
             totalAmount: bookingType === 'with_tests' ? totalMrp : 0,
@@ -371,7 +379,7 @@ const BookTestScreen: React.FC<{setActiveScreen: (screen: string) => void}> = ({
 const TrackSampleScreen: React.FC = () => {
     const { bookings } = useContext(AppContext);
     // Filter for active bookings only
-    const activeBookings = bookings.filter(b => b.status !== 'Completed' && b.status !== 'Report Ready');
+    const activeBookings = bookings.filter(b => b.status !== 'Completed');
     
     // Sort by date descending
     activeBookings.sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
@@ -398,32 +406,40 @@ const TrackSampleScreen: React.FC = () => {
 
 const BookingStatusCard: React.FC<{booking: Booking}> = ({booking}) => {
     const steps = ['Pending', 'Collected', 'In Lab', 'Processing', 'Report Ready'];
+    // Handle Rejection or Completion
+    const isRejected = booking.status === 'Rejected';
     const currentStepIndex = steps.indexOf(booking.status) === -1 ? (booking.status === 'Completed' ? 5 : 0) : steps.indexOf(booking.status);
     
     return (
-        <Card className="overflow-hidden border-l-4 border-l-primary">
+        <Card className={`overflow-hidden border-l-4 ${isRejected ? 'border-l-red-500' : 'border-l-primary'}`}>
              <div className="flex justify-between items-start mb-4">
                 <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order #{booking.id.slice(-6)}</p>
                     <h3 className="font-bold text-lg text-gray-800 dark:text-white">{booking.tests.length > 0 ? booking.tests[0].name + (booking.tests.length > 1 ? ` + ${booking.tests.length-1} more` : '') : 'Prescription Upload'}</h3>
                 </div>
-                <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">{booking.status}</span>
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${isRejected ? 'bg-red-100 text-red-700' : 'bg-primary/10 text-primary'}`}>{booking.status}</span>
              </div>
              
-             {/* Timeline */}
-             <div className="relative pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-6 my-4">
-                 {steps.map((step, index) => {
-                     const isCompleted = index <= currentStepIndex;
-                     const isCurrent = index === currentStepIndex;
-                     return (
-                         <div key={step} className="relative">
-                             <div className={`absolute -left-[21px] top-1 w-3.5 h-3.5 rounded-full border-2 transition-all duration-500 ${isCompleted ? 'bg-primary border-primary scale-110' : 'bg-white border-gray-300 dark:bg-dark dark:border-gray-600'}`}></div>
-                             <p className={`text-sm transition-colors duration-300 ${isCompleted ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-400'}`}>{step}</p>
-                             {isCurrent && <p className="text-xs text-primary font-medium animate-pulse">In Progress...</p>}
-                         </div>
-                     )
-                 })}
-             </div>
+             {isRejected ? (
+                 <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm font-bold flex items-center">
+                     <Icon name="close" className="w-5 h-5 mr-2"/> Sample Rejected. Please contact support.
+                 </div>
+             ) : (
+                 /* Timeline */
+                 <div className="relative pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-6 my-4">
+                     {steps.map((step, index) => {
+                         const isCompleted = index <= currentStepIndex;
+                         const isCurrent = index === currentStepIndex;
+                         return (
+                             <div key={step} className="relative">
+                                 <div className={`absolute -left-[21px] top-1 w-3.5 h-3.5 rounded-full border-2 transition-all duration-500 ${isCompleted ? 'bg-primary border-primary scale-110' : 'bg-white border-gray-300 dark:bg-dark dark:border-gray-600'}`}></div>
+                                 <p className={`text-sm transition-colors duration-300 ${isCompleted ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-400'}`}>{step}</p>
+                                 {isCurrent && booking.status !== 'Report Ready' && <p className="text-xs text-primary font-medium animate-pulse">In Progress...</p>}
+                             </div>
+                         )
+                     })}
+                 </div>
+             )}
              
              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl mt-2 flex justify-between items-center">
                 <p className="text-xs text-gray-500 font-medium">Est. Report: 24 Hrs</p>

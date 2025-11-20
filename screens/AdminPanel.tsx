@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useMemo } from 'react';
 import type { User, Test, Booking, Report, SampleStatus, PaymentStatus, PaymentMethod, IAppContext } from '../types';
 import { AppContext } from '../App';
@@ -67,7 +68,6 @@ const AdminDashboardScreen: React.FC = () => {
     const today = new Date().toISOString().split('T')[0];
     const todaysBookings = bookings.filter(b => b.bookingDate.startsWith(today));
     const revenueToday = todaysBookings.reduce((acc, b) => acc + b.paidAmount, 0);
-    const abnormalReports = reports.filter(r => r.aiSummarySimple?.toLowerCase().includes('high') || r.aiSummarySimple?.toLowerCase().includes('low')).length;
 
     const data = useMemo(() => {
         const dailyRevenue: {[key: string]: number} = {};
@@ -157,7 +157,7 @@ const BookingManagementScreen: React.FC = () => {
                             </div>
                          </div>
                          <div className="text-right">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${booking.status === 'Completed' ? 'bg-green-100 text-green-700' : (booking.status === 'Report Ready' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700')}`}>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${booking.status === 'Completed' ? 'bg-green-100 text-green-700' : (booking.status === 'Report Ready' ? 'bg-blue-100 text-blue-700' : (booking.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'))}`}>
                                 {booking.status}
                             </span>
                             <p className="text-sm font-bold mt-1">₹{booking.totalAmount}</p>
@@ -236,7 +236,7 @@ const BookingDetailScreen: React.FC<{ booking: Booking; onBack: () => void }> = 
                          </div>
                          <div>
                              <p className="text-gray-400 text-xs uppercase font-bold">Current Status</p>
-                             <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-lg font-bold text-sm mt-1">{booking.status}</span>
+                             <span className={`inline-block px-3 py-1 rounded-lg font-bold text-sm mt-1 ${booking.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-primary/10 text-primary'}`}>{booking.status}</span>
                          </div>
                          <div className="col-span-2">
                              <p className="text-gray-400 text-xs uppercase font-bold">Address</p>
@@ -267,14 +267,17 @@ const BookingDetailScreen: React.FC<{ booking: Booking; onBack: () => void }> = 
 
             <Card className="border-none shadow-lg">
                 <h3 className="font-bold text-xl mb-4 flex items-center"><Icon name="whatsapp" className="w-6 h-6 text-green-500 mr-2"/> Update Status & Notify User</h3>
-                <p className="text-sm text-gray-500 mb-4">Clicking these buttons will update the status and send a notification to the user app immediately.</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Button onClick={() => setIsCollecting(true)} className="bg-blue-600 hover:bg-blue-700 shadow-blue-200">Sample Collected</Button>
-                    <Button onClick={() => handleUpdateStatus('In Lab')} className="bg-purple-600 hover:bg-purple-700 shadow-purple-200">Reached Lab</Button>
-                    <Button onClick={() => handleUpdateStatus('Processing')} className="bg-amber-500 hover:bg-amber-600 shadow-amber-200">Processing</Button>
-                    <Button onClick={() => setIsUploadingReport(true)} className="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200">Upload Report</Button>
+                <p className="text-sm text-gray-500 mb-4">Clicking these buttons will trigger the exact notification text requested.</p>
+                
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <Button onClick={() => setIsCollecting(true)} className="bg-blue-600 hover:bg-blue-700 shadow-blue-200 text-sm">Collected</Button>
+                    <Button onClick={() => handleUpdateStatus('In Lab')} className="bg-purple-600 hover:bg-purple-700 shadow-purple-200 text-sm">In Main Lab</Button>
+                    <Button onClick={() => handleUpdateStatus('Processing')} className="bg-amber-500 hover:bg-amber-600 shadow-amber-200 text-sm">Processing</Button>
+                    <Button onClick={() => setIsUploadingReport(true)} className="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200 text-sm">Upload Report</Button>
+                    <Button onClick={() => handleUpdateStatus('Rejected')} className="bg-red-600 hover:bg-red-700 shadow-red-200 text-sm">Reject Sample</Button>
                 </div>
-                <div className="mt-3 text-right">
+                
+                <div className="mt-6 text-right pt-4 border-t border-gray-100 dark:border-gray-700">
                      <Button onClick={() => handleUpdateStatus('Completed')} variant="outline" className="text-xs py-2">Mark Order Completed</Button>
                 </div>
             </Card>
@@ -368,7 +371,7 @@ const ReportUploadModal: React.FC<{onClose: () => void, onUpload: (file: File) =
                     </label>
                     {file && <p className="mt-2 font-medium text-gray-700">{file.name}</p>}
                 </div>
-                <p className="text-xs text-gray-400">Uploading will automatically trigger "Report Ready" status and notify the user to download.</p>
+                <p className="text-xs text-gray-400">Uploading will automatically trigger "Your Final Report Is Ready" notification.</p>
                 <Button fullWidth disabled={!file} onClick={() => onUpload(file!)} className="shadow-xl">Upload & Notify User</Button>
             </div>
         </Modal>

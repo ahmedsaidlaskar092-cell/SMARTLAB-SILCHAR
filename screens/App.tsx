@@ -1,3 +1,4 @@
+
 import React, { useState, createContext, useCallback, useEffect } from 'react';
 import type { User, Test, Booking, Report, SampleStatus, Notification, PaymentStatus, IAppContext } from '../types';
 import LoginScreen from './screens/LoginScreen';
@@ -166,7 +167,7 @@ const fullTestDatabase: Test[] = [
 ];
 
 const mockBookings: Booking[] = [
-  { id: 'b1', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[40], fullTestDatabase[32]], totalAmount: 8650, discount: 1730, paidAmount: 6920, dueAmount: 0, paymentMethod: 'Online', paymentStatus: 'Fully Paid', bookingDate: new Date().toISOString(), status: 'Collected' },
+  { id: 'b1', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[40], fullTestDatabase[32]], totalAmount: 2850, discount: 570, paidAmount: 2280, dueAmount: 0, paymentMethod: 'Online', paymentStatus: 'Fully Paid', bookingDate: new Date().toISOString(), status: 'Collected' },
   { id: 'b2', userId: '1', name: 'John Doe', age: 34, phone: '9876543210', address: '123 Main St, Anytown', tests: [fullTestDatabase[87]], totalAmount: 660, discount: 132, paidAmount: 200, dueAmount: 328, paymentMethod: 'Split', paymentStatus: 'Partially Paid', bookingDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'Report Ready' },
 ];
 
@@ -240,33 +241,44 @@ const App: React.FC = () => {
   const updateBookingStatus = useCallback((bookingId: string, status: SampleStatus) => {
     const booking = bookings.find(b => b.id === bookingId);
     
-    // Send specific "WhatsApp style" notification based on status
+    // Send specific "WhatsApp style" notification based on status as requested
     if (booking) {
         let message = '';
+        let title = `Update: Booking #${bookingId.slice(0,6)}`;
+        
         switch(status) {
-            case 'Collected': message = "Your Sample Is Collected."; break;
-            case 'In Lab': message = "Your Sample Reach In Main lab."; break;
-            case 'Processing': message = "Your Test Is Processing."; break;
-            case 'Report Ready': message = "Your Final Report Is Ready. Download In App In Report Section."; break;
-            case 'Completed': message = "Order Completed. Thank you for choosing SmartLab."; break;
-            default: message = `Your booking status is now: ${status}`;
+            case 'Collected': 
+                message = "Your Sample Is Collected"; 
+                break;
+            case 'In Lab': 
+                message = "Your Sample Reach In Main lab"; 
+                break;
+            case 'Processing': 
+                message = "Your Test Is Processing"; 
+                break;
+            case 'Report Ready': 
+                message = "Your Final Report Is Ready. Download In App In Report Section"; 
+                title = "Report Ready!";
+                break;
+            case 'Rejected':
+                message = "Your sample Is Rejected. Please contact support.";
+                title = "Sample Rejected";
+                break;
+            case 'Completed': 
+                message = "Order Completed. Thank you for choosing SmartLab."; 
+                break;
+            default: 
+                message = `Your booking status is now: ${status}`;
         }
         
         // Add status specific notification
         sendNotification({
             userId: booking.userId,
-            title: `Update: Booking #${bookingId.slice(0,6)}`,
+            title: title,
             message: message
         });
         
-        // Add extra instruction for Report Ready
-        if (status === 'Report Ready') {
-             sendNotification({
-                userId: booking.userId,
-                title: "Download Report",
-                message: "You can download your final report from the 'Reports' section in the app."
-            });
-        }
+        // For Report Ready, we might want to send a separate nudge if needed, but the above covers the exact string req.
     }
 
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
